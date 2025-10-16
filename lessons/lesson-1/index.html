@@ -440,13 +440,6 @@
                         <option value="1">að borða</option>
                     </select>
                 </div>
-                <div class="control-group" id="tenseControl">
-                    <label for="tenseSelect">Tense:</label>
-                    <select id="tenseSelect">
-                        <option value="present">Nútíð (Present)</option>
-                        <option value="past">Þátíð (Past)</option>
-                    </select>
-                </div>
                 <div class="control-group">
                     <label>&nbsp;</label>
                     <button onclick="toggleAnswers()">Show Answers</button>
@@ -589,21 +582,14 @@
         // Initialize game
         function init() {
             // Handle tense visibility based on CONFIG
-            const tenseControl = document.getElementById('tenseControl');
-            if (!CONFIG.showTenses && tenseControl) {
-                tenseControl.style.display = 'none';
-                // Default to present tense
-                document.getElementById('tenseSelect').value = 'present';
-            }
-            
+    
             document.getElementById('verbSelect').addEventListener('change', resetGame);
-            document.getElementById('tenseSelect').addEventListener('change', resetGame);
             resetGame();
         }
 
         function getCurrentData() {
             const verbIndex = parseInt(document.getElementById('verbSelect').value);
-            const tense = document.getElementById('tenseSelect').value;
+            const tense = 'present';
             const verb = VERB_DATA[verbIndex];
             return {
                 tenseData: verb.tenses[tense],
