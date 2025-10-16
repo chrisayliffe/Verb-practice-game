@@ -1,450 +1,1014 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Icelandic Verb Practice Game – Nútíð Only</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icelandic Verb Practice Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    html, body {
-      width: 100%;
-      overflow-x: hidden;
-      margin: 0;
-      padding: 0;
-      font-family: 'Outfit', sans-serif;
-      background: #ffffff;
-      color: #121212;
-      line-height: 1.6;
-      font-size: 16px;
-    }
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 16px;
-      box-sizing: border-box;
-      max-height: 100vh;
-      overflow: visible;
-    }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #ffffff;
+            color: #121212;
+            line-height: 1.6;
+            font-size: 16px;
+        }
 
-    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; color: #121212; }
-    .subtitle { font-size: 1rem; color: #666; margin-bottom: 16px; }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+            max-height: 100vh;
+            overflow: visible;
+        }
 
-    .controls {
-      background: #f9f9f9;
-      padding: 14px;
-      border-radius: 10px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #121212;
+        }
 
-    .control-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-bottom: 15px;
-      align-items: center;
-    }
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 16px;
+        }
 
-    label { font-size: 1rem; font-weight: 600; color: #121212; }
+        .controls {
+            background: #f9f9f9;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
 
-    select, button {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.0625rem;
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      background: white;
-      color: #121212;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
 
-    select:hover, select:focus {
-      border-color: #21b766;
-      outline: none;
-    }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
 
-    button {
-      font-weight: 600;
-      border: none;
-      background: #21b766;
-      color: white;
-      font-size: 1.0625rem;
-    }
+        label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #121212;
+        }
 
-    button:hover {
-      background: #1a9654;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(33, 183, 102, 0.3);
-    }
+        select, button {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.0625rem;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #121212;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-    button:active { transform: translateY(0); }
-    button.secondary { background: #121212; }
-    button.secondary:hover { background: #333; }
+        select:hover, select:focus {
+            border-color: #21b766;
+            outline: none;
+        }
 
-    .mode-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
+        button {
+            font-weight: 600;
+            border: none;
+            background: #21b766;
+            color: white;
+            font-size: 1.0625rem;
+        }
 
-    .mode-tab {
-      flex: 1;
-      padding: 14px;
-      background: #f0f0f0;
-      border: 2px solid transparent;
-      color: #666;
-      font-weight: 600;
-      font-size: 1.0625rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+        button:hover {
+            background: #1a9654;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(33, 183, 102, 0.3);
+        }
 
-    .mode-tab.active {
-      background: white;
-      border-color: #21b766;
-      color: #21b766;
-      box-shadow: 0 2px 8px rgba(33, 183, 102, 0.1);
-    }
+        button:active {
+            transform: translateY(0);
+        }
 
-    .game-area {
-      background: white;
-      padding: 18px;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      margin-bottom: 8px;
-    }
+        button.secondary {
+            background: #121212;
+        }
 
-    table {
-      table-layout: fixed;
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 12px;
-    }
+        button.secondary:hover {
+            background: #333;
+        }
 
-    th, td {
-      padding: 10px 8px;
-      text-align: center;
-      border: 1px solid #e0e0e0;
-      font-size: 0.9375rem;
-    }
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
 
-    th { background: #f5f5f5; font-weight: 600; color: #121212; font-size: 1rem; }
-    td { background: white; }
+        .mode-tab {
+            flex: 1;
+            padding: 14px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            color: #666;
+            font-weight: 600;
+            font-size: 1.0625rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #e0e0e0;
-      border-radius: 6px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.0625rem;
-      transition: all 0.2s ease;
-    }
+        .mode-tab.active {
+            background: white;
+            border-color: #21b766;
+            color: #21b766;
+            box-shadow: 0 2px 8px rgba(33, 183, 102, 0.1);
+        }
 
-    input[type="text"]:focus { outline: none; border-color: #21b766; }
-    input.correct { border-color: #21b766; background: #f0fdf4; }
-    input.incorrect { border-color: #f15d4e; background: #fef2f2; }
+        .game-area {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            margin-bottom: 8px;
+        }
 
-    .drag-tiles {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-      min-height: 70px;
-      max-height: 140px;
-      overflow-y: auto;
-      padding: 10px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      border: 2px dashed #ddd;
-    }
+        table {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
 
-    .tile {
-      padding: 8px 14px;
-      background: white;
-      border: 2px solid #21b766;
-      border-radius: 6px;
-      cursor: grab;
-      user-select: none;
-      font-weight: 500;
-      font-size: 0.9375rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            font-size: 0.9375rem;
+        }
 
-    .tile:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #121212;
+            font-size: 1rem;
+        }
 
-    .tile.dragging { opacity: 0.5; cursor: grabbing; }
+        td {
+            background: white;
+        }
 
-    .drop-zone {
-      min-height: 40px;
-      background: #f9f9f9;
-      border: 2px dashed #ddd;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.0625rem;
+            transition: all 0.2s ease;
+        }
 
-    .drop-zone.drag-over { background: #e8f5e9; border-color: #21b766; }
-    .drop-zone.correct { background: #f0fdf4; border-color: #21b766; }
-    .drop-zone.incorrect { background: #fef2f2; border-color: #f15d4e; }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #21b766;
+        }
 
-    .score {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
+        input.correct {
+            border-color: #21b766;
+            background: #f0fdf4;
+        }
 
-    .score-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      font-size: 1.0625rem;
-    }
+        input.incorrect {
+            border-color: #f15d4e;
+            background: #fef2f2;
+        }
 
-    .score-value { font-size: 1.625rem; color: #21b766; }
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .actions button { flex: 1; min-width: 150px; }
-    .hidden { display: none !important; }
+        .drag-tiles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            min-height: 70px;
+            max-height: 140px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
 
-    .feedback {
-      padding: 14px;
-      border-radius: 8px;
-      margin-top: 16px;
-      font-weight: 600;
-      font-size: 1.0625rem;
-      text-align: center;
-    }
+        .tile {
+            padding: 8px 14px;
+            background: white;
+            border: 2px solid #21b766;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-    .feedback.success { background: #f0fdf4; color: #21b766; border: 2px solid #21b766; }
-    .feedback.error { background: #fef2f2; color: #f15d4e; border: 2px solid #f15d4e; }
-  </style>
+        .tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .tile.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .drop-zone {
+            min-height: 40px;
+            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone.drag-over {
+            background: #e8f5e9;
+            border-color: #21b766;
+        }
+
+        .drop-zone .tile {
+            border-style: solid;
+            cursor: pointer;
+        }
+
+        .drop-zone.correct {
+            background: #f0fdf4;
+            border-color: #21b766;
+        }
+
+        .drop-zone.incorrect {
+            background: #fef2f2;
+            border-color: #f15d4e;
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.0625rem;
+        }
+
+        .score-value {
+            font-size: 1.625rem;
+            color: #21b766;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .actions button {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .feedback {
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-weight: 600;
+            font-size: 1.0625rem;
+            text-align: center;
+        }
+
+        .feedback.success {
+            background: #f0fdf4;
+            color: #21b766;
+            border: 2px solid #21b766;
+        }
+
+        .feedback.error {
+            background: #fef2f2;
+            color: #f15d4e;
+            border: 2px solid #f15d4e;
+        }
+
+        /* iPad and smaller screens */
+        @media (max-width: 1024px) and (max-height: 900px) {
+            .container {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+                margin-bottom: 6px;
+            }
+
+            .subtitle {
+                font-size: 0.9375rem;
+                margin-bottom: 12px;
+            }
+
+            .controls {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+
+            .mode-tabs {
+                margin-bottom: 10px;
+            }
+
+            .score {
+                padding: 10px 14px;
+                margin-bottom: 10px;
+            }
+
+            .game-area {
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.875rem;
+            }
+
+            .game-area {
+                padding: 12px;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.875rem;
+            }
+
+            th {
+                font-size: 0.9375rem;
+            }
+
+            .tile {
+                font-size: 0.875rem;
+                padding: 6px 10px;
+            }
+
+            select, button {
+                font-size: 0.9375rem;
+                padding: 8px 12px;
+            }
+
+            input[type="text"] {
+                font-size: 0.9375rem;
+                padding: 7px;
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .actions button {
+                min-width: 100%;
+            }
+
+            .drag-tiles {
+                max-height: 120px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Icelandic Verb Practice Game</h1>
-    <p class="subtitle">Practice verb conjugations (Nútíð only)</p>
+    <div class="container">
+        <h1>Icelandic Verb Practice Game</h1>
+        <p class="subtitle">Practice verb conjugations by person</p>
 
-    <div class="controls">
-      <div class="control-row">
-        <div class="control-group">
-          <label for="verbSelect">Select Verb:</label>
-          <select id="verbSelect">
-            <option value="0">að drekka</option>
-            <option value="1">að borða</option>
-          </select>
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="verbSelect">Select Verb:</label>
+                    <select id="verbSelect">
+                        <option value="0">að drekka</option>
+                        <option value="1">að borða</option>
+                    </select>
+                </div>
+                <div class="control-group" id="tenseControl">
+                    <label for="tenseSelect">Tense:</label>
+                    <select id="tenseSelect">
+                        <option value="present">Nútíð (Present)</option>
+                        <option value="past">Þátíð (Past)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button onclick="toggleAnswers()">Show Answers</button>
+                </div>
+            </div>
         </div>
-        <div class="control-group">
-          <label>&nbsp;</label>
-          <button onclick="toggleAnswers()">Show Answers</button>
+
+        <div class="mode-tabs">
+            <div class="mode-tab active" onclick="switchMode('fill')">
+                Fill in the Blank
+            </div>
+            <div class="mode-tab" onclick="switchMode('drag')">
+                Drag & Drop
+            </div>
         </div>
-      </div>
+
+        <div class="score">
+            <div class="score-item">
+                <span>Progress:</span>
+                <span class="score-value" id="scoreDisplay">0%</span>
+            </div>
+            <div class="score-item">
+                <span>Correct:</span>
+                <span class="score-value" id="correctCount">0</span>
+            </div>
+        </div>
+
+        <div class="game-area exercise-panels">
+            <div id="fillMode">
+                <table id="fillTable"></table>
+                <div class="actions">
+                    <button onclick="checkAnswers()">Check Answers</button>
+                    <button class="secondary" onclick="resetGame()">Reset</button>
+                </div>
+            </div>
+
+            <div id="dragMode" class="hidden">
+                <div class="drag-tiles" id="dragTiles"></div>
+                <table id="dragTable"></table>
+                <div class="actions">
+                    <button onclick="checkDragAnswers()">Check Answers</button>
+                    <button class="secondary" onclick="resetGame()">Reset</button>
+                </div>
+            </div>
+
+            <div id="feedback"></div>
+        </div>
     </div>
 
-    <div class="mode-tabs">
-      <div class="mode-tab active" onclick="switchMode('fill', event)">Fill in the Blank</div>
-      <div class="mode-tab" onclick="switchMode('drag', event)">Drag & Drop</div>
-    </div>
+    <script>
+        // CONFIGURATION
+        const CONFIG = {
+            showTenses: true  // Set to false to hide tense selector and default to present tense
+        };
 
-    <div class="score">
-      <div class="score-item"><span>Progress:</span><span class="score-value" id="scoreDisplay">0%</span></div>
-      <div class="score-item"><span>Correct:</span><span class="score-value" id="correctCount">0</span></div>
-    </div>
+        // Verb data - easily editable JSON
+        const VERB_DATA = [
+            {
+                "verb": "drekka",
+                "lemmas": ["drekka"],
+                "tenses": {
+                    "present": {
+                        "label": "Nútíð",
+                        "singular": {
+                            "1": "drekk",
+                            "2": "drekkur",
+                            "3": "drekkur"
+                        },
+                        "plural": {
+                            "1": "drekkum",
+                            "2": "drekkið",
+                            "3": "drekka"
+                        }
+                    },
+                    "past": {
+                        "label": "Þátíð",
+                        "singular": {
+                            "1": "drakk",
+                            "2": "drakkst",
+                            "3": "drakk"
+                        },
+                        "plural": {
+                            "1": "drukkum",
+                            "2": "drukkuð",
+                            "3": "drukku"
+                        }
+                    }
+                },
+                "ui": {
+                    "pronouns": {
+                        "singular": { "1": "ég", "2": "þú", "3": "hann / hún / það" },
+                        "plural":   { "1": "við", "2": "þið", "3": "þeir / þær / þau" }
+                    }
+                }
+            },
+            {
+                "verb": "borða",
+                "lemmas": ["borða"],
+                "tenses": {
+                    "present": {
+                        "label": "Nútíð",
+                        "singular": {
+                            "1": "borða",
+                            "2": "borðar",
+                            "3": "borðar"
+                        },
+                        "plural": {
+                            "1": "borðum",
+                            "2": "borðið",
+                            "3": "borða"
+                        }
+                    },
+                    "past": {
+                        "label": "Þátíð",
+                        "singular": {
+                            "1": "borðaði",
+                            "2": "borðaðir",
+                            "3": "borðaði"
+                        },
+                        "plural": {
+                            "1": "borðuðum",
+                            "2": "borðuðuð",
+                            "3": "borðuðu"
+                        }
+                    }
+                },
+                "ui": {
+                    "pronouns": {
+                        "singular": { "1": "ég", "2": "þú", "3": "hann / hún / það" },
+                        "plural":   { "1": "við", "2": "þið", "3": "þeir / þær / þau" }
+                    }
+                }
+            }
+        ];
 
-    <div class="game-area exercise-panels">
-      <div id="fillMode">
-        <table id="fillTable"></table>
-        <div class="actions">
-          <button onclick="checkAnswers()">Check Answers</button>
-          <button class="secondary" onclick="resetGame()">Reset</button>
-        </div>
-      </div>
+        let currentMode = 'fill';
+        let showingAnswers = false;
+        let draggedElement = null;
 
-      <div id="dragMode" class="hidden">
-        <div class="drag-tiles" id="dragTiles"></div>
-        <table id="dragTable"></table>
-        <div class="actions">
-          <button onclick="checkDragAnswers()">Check Answers</button>
-          <button class="secondary" onclick="resetGame()">Reset</button>
-        </div>
-      </div>
-
-      <div id="feedback"></div>
-    </div>
-  </div>
-
-  <script>
-    const VERB_DATA = [
-      {
-        "verb": "drekka",
-        "tenses": {
-          "present": {
-            "singular": { "1": "drekk", "2": "drekkur", "3": "drekkur" },
-            "plural": { "1": "drekkum", "2": "drekkið", "3": "drekka" }
-          }
-        },
-        "ui": {
-          "pronouns": {
-            "singular": { "1": "ég", "2": "þú", "3": "hann / hún / það" },
-            "plural": { "1": "við", "2": "þið", "3": "þeir / þær / þau" }
-          }
+        // Initialize game
+        function init() {
+            // Handle tense visibility based on CONFIG
+            const tenseControl = document.getElementById('tenseControl');
+            if (!CONFIG.showTenses && tenseControl) {
+                tenseControl.style.display = 'none';
+                // Default to present tense
+                document.getElementById('tenseSelect').value = 'present';
+            }
+            
+            document.getElementById('verbSelect').addEventListener('change', resetGame);
+            document.getElementById('tenseSelect').addEventListener('change', resetGame);
+            resetGame();
         }
-      },
-      {
-        "verb": "borða",
-        "tenses": {
-          "present": {
-            "singular": { "1": "borða", "2": "borðar", "3": "borðar" },
-            "plural": { "1": "borðum", "2": "borðið", "3": "borða" }
-          }
-        },
-        "ui": {
-          "pronouns": {
-            "singular": { "1": "ég", "2": "þú", "3": "hann / hún / það" },
-            "plural": { "1": "við", "2": "þið", "3": "þeir / þær / þau" }
-          }
+
+        function getCurrentData() {
+            const verbIndex = parseInt(document.getElementById('verbSelect').value);
+            const tense = document.getElementById('tenseSelect').value;
+            const verb = VERB_DATA[verbIndex];
+            return {
+                tenseData: verb.tenses[tense],
+                pronouns: verb.ui.pronouns,
+                verbName: verb.verb
+            };
         }
-      }
-    ];
 
-    let currentMode = 'fill', showingAnswers = false, draggedElement = null;
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (mode === 'fill') {
+                document.getElementById('fillMode').classList.remove('hidden');
+                document.getElementById('dragMode').classList.add('hidden');
+            } else {
+                document.getElementById('fillMode').classList.add('hidden');
+                document.getElementById('dragMode').classList.remove('hidden');
+            }
+            
+            resetGame();
+        }
 
-    function init() {
-      document.getElementById('verbSelect').addEventListener('change', resetGame);
-      resetGame();
-    }
+        function createFillTable() {
+            const { tenseData, pronouns } = getCurrentData();
+            const table = document.getElementById('fillTable');
+            table.innerHTML = '';
 
-    function getCurrentData() {
-      const verbIndex = parseInt(document.getElementById('verbSelect').value);
-      const verb = VERB_DATA[verbIndex];
-      return { tenseData: verb.tenses.present, pronouns: verb.ui.pronouns };
-    }
+            // Header row
+            const headerRow = document.createElement('tr');
+            const headers = ['', '1st Person', '2nd Person', '3rd Person'];
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
 
-    function switchMode(mode, e) {
-      currentMode = mode;
-      document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
-      e.target.classList.add('active');
-      document.getElementById('fillMode').classList.toggle('hidden', mode !== 'fill');
-      document.getElementById('dragMode').classList.toggle('hidden', mode !== 'drag');
-      resetGame();
-    }
+            // Singular row
+            const singularRow = document.createElement('tr');
+            const singularTh = document.createElement('th');
+            singularTh.textContent = 'Singular (Eintala)';
+            singularRow.appendChild(singularTh);
 
-    function createFillTable() {
-      const { tenseData, pronouns } = getCurrentData();
-      const table = document.getElementById('fillTable');
-      table.innerHTML = '';
-      const header = ['', '1st Person', '2nd Person', '3rd Person'];
-      const tr = document.createElement('tr');
-      header.forEach(h => { const th = document.createElement('th'); th.textContent = h; tr.appendChild(th); });
-      table.appendChild(tr);
+            ['1', '2', '3'].forEach(person => {
+                const td = document.createElement('td');
+                const pronounSpan = document.createElement('div');
+                pronounSpan.style.fontSize = '0.9375rem';
+                pronounSpan.style.color = '#666';
+                pronounSpan.style.marginBottom = '6px';
+                pronounSpan.textContent = pronouns.singular[person];
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.dataset.correct = tenseData.singular[person];
+                input.dataset.number = 'singular';
+                input.dataset.person = person;
+                
+                td.appendChild(pronounSpan);
+                td.appendChild(input);
+                singularRow.appendChild(td);
+            });
+            table.appendChild(singularRow);
 
-      ['singular', 'plural'].forEach(num => {
-        const row = document.createElement('tr');
-        const th = document.createElement('th');
-        th.textContent = num === 'singular' ? 'Singular (Eintala)' : 'Plural (Fleirtala)';
-        row.appendChild(th);
-        ['1','2','3'].forEach(p => {
-          const td = document.createElement('td');
-          const span = document.createElement('div');
-          span.style.marginBottom = '6px'; span.style.color = '#666';
-          span.textContent = pronouns[num][p];
-          const input = document.createElement('input');
-          input.type = 'text'; input.dataset.correct = tenseData[num][p];
-          td.appendChild(span); td.appendChild(input); row.appendChild(td);
+            // Plural row
+            const pluralRow = document.createElement('tr');
+            const pluralTh = document.createElement('th');
+            pluralTh.textContent = 'Plural (Fleirtala)';
+            pluralRow.appendChild(pluralTh);
+
+            ['1', '2', '3'].forEach(person => {
+                const td = document.createElement('td');
+                const pronounSpan = document.createElement('div');
+                pronounSpan.style.fontSize = '0.9375rem';
+                pronounSpan.style.color = '#666';
+                pronounSpan.style.marginBottom = '6px';
+                pronounSpan.textContent = pronouns.plural[person];
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.dataset.correct = tenseData.plural[person];
+                input.dataset.number = 'plural';
+                input.dataset.person = person;
+                
+                td.appendChild(pronounSpan);
+                td.appendChild(input);
+                pluralRow.appendChild(td);
+            });
+            table.appendChild(pluralRow);
+        }
+
+        function createDragTable() {
+            const { tenseData, pronouns } = getCurrentData();
+            const table = document.getElementById('dragTable');
+            const tiles = document.getElementById('dragTiles');
+            
+            table.innerHTML = '';
+            tiles.innerHTML = '';
+
+            // Create tiles - collect all forms
+            const allForms = [];
+            ['singular', 'plural'].forEach(number => {
+                ['1', '2', '3'].forEach(person => {
+                    allForms.push(tenseData[number][person]);
+                });
+            });
+
+            // Shuffle forms
+            allForms.sort(() => Math.random() - 0.5);
+
+            allForms.forEach(form => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.textContent = form;
+                tile.draggable = true;
+                tile.dataset.form = form;
+                
+                tile.addEventListener('dragstart', handleDragStart);
+                tile.addEventListener('dragend', handleDragEnd);
+                
+                tiles.appendChild(tile);
+            });
+
+            // Create table header
+            const headerRow = document.createElement('tr');
+            const headers = ['', '1st Person', '2nd Person', '3rd Person'];
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Singular row
+            const singularRow = document.createElement('tr');
+            const singularTh = document.createElement('th');
+            singularTh.textContent = 'Singular (Eintala)';
+            singularRow.appendChild(singularTh);
+
+            ['1', '2', '3'].forEach(person => {
+                const td = document.createElement('td');
+                const pronounSpan = document.createElement('div');
+                pronounSpan.style.fontSize = '0.9375rem';
+                pronounSpan.style.color = '#666';
+                pronounSpan.style.marginBottom = '6px';
+                pronounSpan.textContent = pronouns.singular[person];
+                
+                const dropZone = document.createElement('div');
+                dropZone.className = 'drop-zone';
+                dropZone.dataset.correct = tenseData.singular[person];
+                dropZone.dataset.number = 'singular';
+                dropZone.dataset.person = person;
+                
+                dropZone.addEventListener('dragover', handleDragOver);
+                dropZone.addEventListener('drop', handleDrop);
+                dropZone.addEventListener('dragleave', handleDragLeave);
+                dropZone.addEventListener('click', handleDropZoneClick);
+                
+                td.appendChild(pronounSpan);
+                td.appendChild(dropZone);
+                singularRow.appendChild(td);
+            });
+            table.appendChild(singularRow);
+
+            // Plural row
+            const pluralRow = document.createElement('tr');
+            const pluralTh = document.createElement('th');
+            pluralTh.textContent = 'Plural (Fleirtala)';
+            pluralRow.appendChild(pluralTh);
+
+            ['1', '2', '3'].forEach(person => {
+                const td = document.createElement('td');
+                const pronounSpan = document.createElement('div');
+                pronounSpan.style.fontSize = '0.9375rem';
+                pronounSpan.style.color = '#666';
+                pronounSpan.style.marginBottom = '6px';
+                pronounSpan.textContent = pronouns.plural[person];
+                
+                const dropZone = document.createElement('div');
+                dropZone.className = 'drop-zone';
+                dropZone.dataset.correct = tenseData.plural[person];
+                dropZone.dataset.number = 'plural';
+                dropZone.dataset.person = person;
+                
+                dropZone.addEventListener('dragover', handleDragOver);
+                dropZone.addEventListener('drop', handleDrop);
+                dropZone.addEventListener('dragleave', handleDragLeave);
+                dropZone.addEventListener('click', handleDropZoneClick);
+                
+                td.appendChild(pronounSpan);
+                td.appendChild(dropZone);
+                pluralRow.appendChild(td);
+            });
+            table.appendChild(pluralRow);
+        }
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const dropZone = e.currentTarget;
+            
+            // If drop zone already has a tile, send it back to tiles area
+            const existingTile = dropZone.querySelector('.tile');
+            if (existingTile) {
+                document.getElementById('dragTiles').appendChild(existingTile);
+            }
+            
+            // Add the dragged tile to drop zone
+            dropZone.appendChild(draggedElement);
+            draggedElement = null;
+        }
+
+        function handleDropZoneClick(e) {
+            const dropZone = e.currentTarget;
+            const tile = dropZone.querySelector('.tile');
+            if (tile) {
+                document.getElementById('dragTiles').appendChild(tile);
+            }
+        }
+
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('#fillTable input');
+            let correct = 0;
+            let total = inputs.length;
+
+            inputs.forEach(input => {
+                const userAnswer = input.value.trim().toLowerCase();
+                const correctAnswer = input.dataset.correct.trim().toLowerCase();
+                
+                if (userAnswer === correctAnswer) {
+                    input.classList.add('correct');
+                    input.classList.remove('incorrect');
+                    correct++;
+                } else if (userAnswer !== '') {
+                    input.classList.add('incorrect');
+                    input.classList.remove('correct');
+                } else {
+                    input.classList.remove('correct', 'incorrect');
+                }
+            });
+
+            updateScore(correct, total);
+            showFeedback(correct, total);
+        }
+
+        function checkDragAnswers() {
+            const dropZones = document.querySelectorAll('#dragTable .drop-zone');
+            let correct = 0;
+            let total = dropZones.length;
+
+            dropZones.forEach(zone => {
+                const tile = zone.querySelector('.tile');
+                if (tile) {
+                    const userAnswer = tile.dataset.form.trim().toLowerCase();
+                    const correctAnswer = zone.dataset.correct.trim().toLowerCase();
+                    
+                    if (userAnswer === correctAnswer) {
+                        zone.classList.add('correct');
+                        zone.classList.remove('incorrect');
+                        correct++;
+                    } else {
+                        zone.classList.add('incorrect');
+                        zone.classList.remove('correct');
+                    }
+                } else {
+                    zone.classList.remove('correct', 'incorrect');
+                }
+            });
+
+            updateScore(correct, total);
+            showFeedback(correct, total);
+        }
+
+        function updateScore(correct, total) {
+            const percentage = Math.round((correct / total) * 100);
+            document.getElementById('scoreDisplay').textContent = percentage + '%';
+            document.getElementById('correctCount').textContent = correct + '/' + total;
+        }
+
+        function showFeedback(correct, total) {
+            const feedback = document.getElementById('feedback');
+            feedback.className = 'feedback';
+            
+            if (correct === total) {
+                feedback.classList.add('success');
+                feedback.textContent = '🎉 Perfect! All answers correct!';
+            } else if (correct > total / 2) {
+                feedback.classList.add('success');
+                feedback.textContent = `Good job! ${correct} out of ${total} correct.`;
+            } else {
+                feedback.classList.add('error');
+                feedback.textContent = `Keep practicing! ${correct} out of ${total} correct.`;
+            }
+        }
+
+        function toggleAnswers() {
+            showingAnswers = !showingAnswers;
+            const button = event.target;
+            
+            if (showingAnswers) {
+                button.textContent = 'Hide Answers';
+                if (currentMode === 'fill') {
+                    const inputs = document.querySelectorAll('#fillTable input');
+                    inputs.forEach(input => {
+                        input.value = input.dataset.correct;
+                        input.classList.add('correct');
+                    });
+                } else {
+                    // For drag mode, show correct answers in drop zones
+                    const dropZones = document.querySelectorAll('#dragTable .drop-zone');
+                    dropZones.forEach(zone => {
+                        if (!zone.querySelector('.tile')) {
+                            const hint = document.createElement('span');
+                            hint.style.color = '#21b766';
+                            hint.style.fontSize = '0.875rem';
+                            hint.textContent = zone.dataset.correct;
+                            zone.appendChild(hint);
+                        }
+                    });
+                }
+            } else {
+                button.textContent = 'Show Answers';
+                if (currentMode === 'fill') {
+                    const inputs = document.querySelectorAll('#fillTable input');
+                    inputs.forEach(input => {
+                        input.value = '';
+                        input.classList.remove('correct', 'incorrect');
+                    });
+                } else {
+                    const dropZones = document.querySelectorAll('#dragTable .drop-zone');
+                    dropZones.forEach(zone => {
+                        const hint = zone.querySelector('span');
+                        if (hint) hint.remove();
+                    });
+                }
+            }
+        }
+
+        function resetGame() {
+            showingAnswers = false;
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('scoreDisplay').textContent = '0%';
+            document.getElementById('correctCount').textContent = '0';
+            
+            const showAnswersBtn = document.querySelector('.controls button');
+            if (showAnswersBtn) showAnswersBtn.textContent = 'Show Answers';
+            
+            if (currentMode === 'fill') {
+                createFillTable();
+            } else {
+                createDragTable();
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <script>
+      // AUTO-RESIZE FOR LEARNWORLDS IFRAME (debounced, no extra buffer)
+      (function () {
+        let timer;
+        function postHeight() {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            const h = Math.max(
+              document.body.scrollHeight,
+              document.documentElement.scrollHeight
+            );
+            parent.postMessage({ type: 'IFRAME_HEIGHT', height: h }, '*');
+          }, 100);
+        }
+
+        const ro = new ResizeObserver(postHeight);
+        ro.observe(document.body);
+
+        window.addEventListener('load', postHeight);
+        ['verbSelect','tenseSelect'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('change', postHeight);
         });
-        table.appendChild(row);
-      });
-    }
 
-    function createDragTable() {
-      const { tenseData, pronouns } = getCurrentData();
-      const table = document.getElementById('dragTable');
-      const tiles = document.getElementById('dragTiles');
-      table.innerHTML = ''; tiles.innerHTML = '';
-
-      const forms = [...Object.values(tenseData.singular), ...Object.values(tenseData.plural)].sort(() => Math.random() - 0.5);
-      forms.forEach(f => {
-        const tile = document.createElement('div');
-        tile.className = 'tile'; tile.textContent = f; tile.draggable = true;
-        tile.dataset.form = f;
-        tile.addEventListener('dragstart', e => draggedElement = e.target);
-        tile.addEventListener('dragend', e => e.target.classList.remove('dragging'));
-        tiles.appendChild(tile);
-      });
-
-      const header = ['', '1st Person', '2nd Person', '3rd Person'];
-      const tr = document.createElement('tr');
-      header.forEach(h => { const th = document.createElement('th'); th.textContent = h; tr.appendChild(th); });
-      table.appendChild(tr);
-
-      ['singular', 'plural'].forEach(num => {
-        const row = document.createElement('tr');
-        const th = document.createElement('th');
-        th.textContent = num === 'singular' ? 'Singular (Eintala)' : 'Plural (Fleirtala)';
-        row.appendChild(th);
-        ['1','2','3'].forEach(p => {
-          const td = document.createElement('td');
-          const span = document.createElement('div');
-          span.style.marginBottom = '6px'; span.style.color = '#666';
-          span.textContent = pronouns[num][p];
-          const dz = document.createElement('div');
-          dz.className = 'drop-zone'; dz.dataset.correct = tenseData[num][p];
-          dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
-          dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-          dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); dz.appendChild(draggedElement); });
-          td.appendChild(span); td.appendChild(dz); row.appendChild(td);
-        });
-        table.appendChild(row);
-      });
-    }
-
-    function checkAnswers() {
-      const inputs = document.querySelectorAll('#fillTable input');
-      let correct = 0;
-      inputs.forEach(i => { if (i.value.trim().toLowerCase() === i.dataset.correct.toLowerCase()) { i.classList.add('correct'); correct++; } else i.classList.add('incorrect'); });
-      updateScore(correct, inputs.length);
-    }
-
-    function checkDragAnswers() {
-      const zones = document.querySelectorAll('#dragTable .drop-zone');
-      let correct = 0;
-      zones.forEach(z => {
-        const t = z.querySelector('.tile');
-        if (t && t.dataset.form.toLowerCase() === z.dataset.correct.toLowerCase()) { z.classList.add('correct'); correct++; }
-        else z.classList.add('incorrect');
-      });
-      updateScore(correct, zones.length);
-    }
-
-    function updateScore(c, t) {
-      document.getElementById('scoreDisplay').textContent = Math.round((c / t) * 100) + '%';
-      document.getElementById('correctCount').textContent = c + '/' + t;
-    }
-
-    function toggleAnswers() {
-      showingAnswers = !showingAnswers;
-      const btn = event.target;
-      btn.textContent = showingAnswers ? 'Hide Answers' : 'Show Answers';
-      if (showingAnswers && currentMode === 'fill') {
-        document.querySelectorAll('#fillTable input').forEach(i => i.value = i.dataset.correct);
-      } else if (!showingAnswers) resetGame();
-    }
-
-    function resetGame() {
-      document.getElementById('feedback').innerHTML = '';
-      document.get
+        document.querySelectorAll('.mode-tab')
+          .forEach(tab => tab.addEventListener('click', () => setTimeout(postHeight, 150)));
+      })();
+    </script>
+</body>
+</html>
