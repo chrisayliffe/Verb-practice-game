@@ -2,71 +2,448 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Icelandic Verb Game - Dynamic</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow">
+  <title>Icelandic Verb Practice Game (Dynamic)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Outfit', sans-serif;
-      background: #fff;
-      color: #121212;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: #121212;
-    }
-    p.subtitle {
-      color: #555;
-      margin-bottom: 20px;
-    }
-    .error {
-      background: #fef2f2;
-      color: #d93025;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 500;
-      border: 1px solid #f15d4e;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; overflow-x: hidden; }
+    body { font-family: 'Outfit', sans-serif; background:#fff; color:#121212; line-height:1.6; font-size:16px; padding:16px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 2rem; font-weight: 600; margin-bottom: 6px; }
+    .subtitle { color:#666; margin-bottom: 14px; }
+    .controls { background:#f9f9f9; padding:14px; border-radius:10px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+    .control-row { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:15px; align-items:center; }
+    .control-group { display:flex; flex-direction:column; gap:5px; }
+    label { font-size:1rem; font-weight:600; color:#121212; }
+    select, button { font-family:'Outfit',sans-serif; font-size:1.0625rem; padding:12px 20px; border-radius:8px; border:1px solid #ddd; background:white; color:#121212; cursor:pointer; transition:all .2s; }
+    select:hover, select:focus { border-color:#21b766; outline:none; }
+    button { font-weight:600; border:none; background:#21b766; color:white; }
+    button:hover { background:#1a9654; transform:translateY(-1px); box-shadow:0 4px 12px rgba(33,183,102,.3); }
+    button.secondary { background:#121212; }
+    .mode-tabs { display:flex; gap:10px; margin-bottom:14px; }
+    .mode-tab { flex:1; padding:14px; background:#f0f0f0; border:2px solid transparent; color:#666; font-weight:600; border-radius:8px; cursor:pointer; transition:all .2s; text-align:center; }
+    .mode-tab.active { background:#fff; border-color:#21b766; color:#21b766; box-shadow:0 2px 8px rgba(33,183,102,.1); }
+    .game-area { background:#fff; padding:18px; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.08); margin-bottom:8px; }
+    table { table-layout:fixed; width:100%; border-collapse:collapse; margin-bottom:12px; }
+    th, td { padding:10px 8px; text-align:center; border:1px solid #e0e0e0; font-size:.9375rem; }
+    th { background:#f5f5f5; font-weight:600; }
+    input[type="text"] { width:100%; padding:10px; border:2px solid #e0e0e0; border-radius:6px; font-family:'Outfit',sans-serif; font-size:1.0625rem; transition:all .2s; }
+    input[type="text"]:focus { outline:none; border-color:#21b766; }
+    input.correct { border-color:#21b766; background:#f0fdf4; }
+    input.incorrect { border-color:#f15d4e; background:#fef2f2; }
+    .drag-tiles { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; min-height:70px; max-height:140px; overflow-y:auto; padding:10px; background:#f9f9f9; border-radius:8px; border:2px dashed #ddd; }
+    .tile { padding:8px 14px; background:white; border:2px solid #21b766; border-radius:6px; cursor:grab; user-select:none; font-weight:500; font-size:.9375rem; transition:all .2s; box-shadow:0 2px 4px rgba(0,0,0,.1); }
+    .tile.dragging { opacity:.5; cursor:grabbing; }
+    .drop-zone { min-height:40px; background:#f9f9f9; border:2px dashed #ddd; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .drop-zone.drag-over { background:#e8f5e9; border-color:#21b766; }
+    .drop-zone.correct { background:#f0fdf4; border-color:#21b766; }
+    .drop-zone.incorrect { background:#fef2f2; border-color:#f15d4e; }
+    .score { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#f9f9f9; border-radius:8px; margin-bottom:12px; }
+    .score-item { display:flex; align-items:center; gap:8px; font-weight:600; font-size:1.0625rem; }
+    .score-value { font-size:1.625rem; color:#21b766; }
+    .hidden { display:none !important; }
+    .feedback { padding:14px; border-radius:8px; margin-top:16px; font-weight:600; font-size:1.0625rem; text-align:center; }
+    .feedback.success { background:#f0fdf4; color:#21b766; border:2px solid #21b766; }
+    .feedback.error { background:#fef2f2; color:#f15d4e; border:2px solid #f15d4e; }
+    @media (max-width:768px){ body{font-size:15px} h1{font-size:1.5rem} }
   </style>
 </head>
 <body>
-  <h1>Icelandic Verb Practice Game (Dynamic)</h1>
-  <p class="subtitle">Loads verbs automatically from Google Sheets by lesson name.</p>
-  <div id="game"></div>
-  <div id="error"></div>
+  <div class="container">
+    <h1 id="pageTitle">Icelandic Verb Practice Game</h1>
+    <p id="pageSubtitle" class="subtitle">Loading lesson…</p>
+
+    <div class="controls">
+      <div class="control-row">
+        <div class="control-group">
+          <label for="verbSelect">Select Verb:</label>
+          <select id="verbSelect"></select>
+        </div>
+        <div class="control-group" id="tenseControl">
+          <label for="tenseSelect">Tense:</label>
+          <select id="tenseSelect">
+            <option value="present">Nútíð (Present)</option>
+            <option value="past">Þátíð (Past)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>&nbsp;</label>
+          <button id="toggleAnswersBtn">Show Answers</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mode-tabs">
+      <div class="mode-tab active" data-mode="fill">Fill in the Blank</div>
+      <div class="mode-tab" data-mode="drag">Drag & Drop</div>
+    </div>
+
+    <div class="score">
+      <div class="score-item"><span>Progress:</span><span class="score-value" id="scoreDisplay">0%</span></div>
+      <div class="score-item"><span>Correct:</span><span class="score-value" id="correctCount">0</span></div>
+    </div>
+
+    <div class="game-area exercise-panels">
+      <div id="fillMode">
+        <table id="fillTable"></table>
+        <div class="actions">
+          <button id="checkFill">Check Answers</button>
+          <button class="secondary" id="resetFill">Reset</button>
+        </div>
+      </div>
+
+      <div id="dragMode" class="hidden">
+        <div class="drag-tiles" id="dragTiles"></div>
+        <table id="dragTable"></table>
+        <div class="actions">
+          <button id="checkDrag">Check Answers</button>
+          <button class="secondary" id="resetDrag">Reset</button>
+        </div>
+      </div>
+
+      <div id="feedback"></div>
+    </div>
+  </div>
 
   <script>
-    const SHEET_ID = "1TvQ8qTJ2IkaRbyJa3JNbjbLOM0peubS0VDNGupHwZes"; // ✅ Replace if yours changes
-    const urlParams = new URLSearchParams(window.location.search);
-    const lessonName = urlParams.get("lesson") || "Lesson 1";
-    const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/${lessonName}`;
+    // ---- Settings from your guide ----
+    const SHEET_ID = "1TvQ8qTJ2IkaRbyJa3JNbjbLOM0peubS0VDNGupHwZes";
+    const params = new URLSearchParams(location.search);
+    const TAB = params.get("lesson") || "Lesson 1";
+    // Using opensheet to read tab as JSON
+    const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB)}`;
 
+    // App State
+    let VERB_DATA = []; // will be built from sheet
+    let CONFIG = { showTenses: true };
+    let currentMode = 'fill';
+    let showingAnswers = false;
+
+    const els = {
+      title: document.getElementById('pageTitle'),
+      subtitle: document.getElementById('pageSubtitle'),
+      verbSelect: document.getElementById('verbSelect'),
+      tenseSelect: document.getElementById('tenseSelect'),
+      tenseControl: document.getElementById('tenseControl'),
+      toggleAnswersBtn: document.getElementById('toggleAnswersBtn'),
+      fillTable: document.getElementById('fillTable'),
+      dragTable: document.getElementById('dragTable'),
+      dragTiles: document.getElementById('dragTiles'),
+      scoreDisplay: document.getElementById('scoreDisplay'),
+      correctCount: document.getElementById('correctCount'),
+      feedback: document.getElementById('feedback'),
+      fillMode: document.getElementById('fillMode'),
+      dragMode: document.getElementById('dragMode'),
+    };
+
+    // ---- Load lesson from Google Sheets ----
     async function loadLesson() {
+      els.subtitle.textContent = `Loading "${TAB}"…`;
       try {
         const res = await fetch(SHEET_URL);
-        if (!res.ok) throw new Error("Sheet not found or not public.");
-        const data = await res.json();
+        if (!res.ok) throw new Error("Could not read sheet. Is it public?");
+        const rows = await res.json();
 
-        if (!data.length) {
-          document.getElementById("error").innerHTML = `<div class="error">No data found for ${lessonName}</div>`;
-          return;
+        // Parse config rows
+        const getCfg = (key) => {
+          const r = rows.find(r => (r['LESSON_TITLE']||r['LESSON_SUBTITLE']||r['SHOW_TENSES']||'') === key);
+          return r ? (r['Lesson 1: Basic Verbs - Nútíð'] || r['Practice present tense conjugations'] || r['yes'] || r['no'] || Object.values(r)[1]) : null;
+        };
+
+        // Safer parse using known layout from your guide
+        const titleRow = rows.find(r => r['LESSON_TITLE'] !== undefined) || {};
+        const subtitleRow = rows.find(r => r['LESSON_SUBTITLE'] !== undefined) || {};
+        const showTensesRow = rows.find(r => r['SHOW_TENSES'] !== undefined) || {};
+
+        const title = Object.values(titleRow)[1] || TAB;
+        const subtitle = Object.values(subtitleRow)[1] || '';
+        const showTenses = (Object.values(showTensesRow)[1] || 'yes').toString().toLowerCase() === 'yes';
+
+        CONFIG.showTenses = showTenses;
+        els.title.textContent = title;
+        els.subtitle.textContent = subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
+
+        // Find header row
+        const headerRowIndex = rows.findIndex(r => (r['Verb'] !== undefined && r['Tense'] !== undefined));
+        if (headerRowIndex === -1) throw new Error('Could not find Verb/Tense header row in the tab.');
+
+        const dataRows = rows.slice(headerRowIndex + 1)
+          .filter(r => r['Verb'] && r['Tense']);
+
+        // Build VERB_DATA in the format your UI expects
+        const byVerb = {};
+        for (const r of dataRows) {
+          const verb = (r['Verb'] || '').trim();
+          const tense = (r['Tense'] || '').trim().toLowerCase(); // 'present' or 'past'
+          if (!verb || !tense) continue;
+
+          byVerb[verb] = byVerb[verb] || {
+            verb,
+            lemmas: [verb],
+            tenses: {
+              present: { label: 'Nútíð', singular: {}, plural: {} },
+              past: { label: 'Þátíð', singular: {}, plural: {} }
+            },
+            ui: {
+              pronouns: {
+                singular: { "1":"ég", "2":"þú", "3":"hann / hún / það" },
+                plural:   { "1":"við", "2":"þið", "3":"þeir / þær / þau" }
+              }
+            }
+          };
+
+          // Columns C–H: ég, þú, hann/hún/það, við, þið, þeir/þær/þau
+          const map = {
+            "1s": r['ég'] || r['Eg'] || r['eg'] || '',
+            "2s": r['þú'] || r['Thu'] || r['þu'] || r['thu'] || r['þú '] || '',
+            "3s": r['hann/hún/það'] || r['hann / hún / það'] || r['hann hun thad'] || r['3s'] || '',
+            "1p": r['við'] || r['Vid'] || r['vid'] || '',
+            "2p": r['þið'] || r['Thid'] || r['thid'] || '',
+            "3p": r['þeir/þær/þau'] || r['their/þær/þau'] || r['3p'] || ''
+          };
+
+          byVerb[verb].tenses[tense].singular["1"] = map["1s"];
+          byVerb[verb].tenses[tense].singular["2"] = map["2s"];
+          byVerb[verb].tenses[tense].singular["3"] = map["3s"];
+          byVerb[verb].tenses[tense].plural["1"]   = map["1p"];
+          byVerb[verb].tenses[tense].plural["2"]   = map["2p"];
+          byVerb[verb].tenses[tense].plural["3"]   = map["3p"];
         }
 
-        let html = `<h2>${lessonName}</h2><table border="1" cellpadding="6" cellspacing="0">
-        <tr><th>Icelandic</th><th>English</th></tr>`;
-        data.forEach(row => {
-          html += `<tr><td>${row.Icelandic || ''}</td><td>${row.English || ''}</td></tr>`;
-        });
-        html += `</table>`;
-        document.getElementById("game").innerHTML = html;
-      } catch (err) {
-        document.getElementById("error").innerHTML = `<div class="error">${err.message}</div>`;
+        VERB_DATA = Object.values(byVerb);
+        if (!VERB_DATA.length) throw new Error('No verb rows found under the header.');
+
+        // Populate UI
+        buildVerbSelect();
+        applyShowTenses();
+        attachHandlers();
+        resetGame();
+
+      } catch (e) {
+        els.subtitle.textContent = '';
+        showError(e.message || 'Failed to load lesson.');
       }
     }
 
+    function buildVerbSelect(){
+      els.verbSelect.innerHTML = '';
+      VERB_DATA.forEach((v, i) => {
+        const opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent = 'að ' + v.verb;
+        els.verbSelect.appendChild(opt);
+      });
+    }
+
+    function applyShowTenses(){
+      els.tenseControl.style.display = CONFIG.showTenses ? '' : 'none';
+      if (!CONFIG.showTenses) els.tenseSelect.value = 'present';
+    }
+
+    function attachHandlers(){
+      els.toggleAnswersBtn.onclick = toggleAnswers;
+      document.querySelectorAll('.mode-tab').forEach(tab=>{
+        tab.onclick = () => switchMode(tab.dataset.mode);
+      });
+      document.getElementById('checkFill').onclick = checkAnswers;
+      document.getElementById('resetFill').onclick = resetGame;
+      document.getElementById('checkDrag').onclick = checkDragAnswers;
+      document.getElementById('resetDrag').onclick = resetGame;
+      els.verbSelect.onchange = resetGame;
+      els.tenseSelect.onchange = resetGame;
+    }
+
+    function getCurrentData(){
+      const verbIndex = parseInt(els.verbSelect.value || '0', 10) || 0;
+      const tense = (els.tenseSelect.value || 'present');
+      const verb = VERB_DATA[verbIndex];
+      return { tenseData: verb.tenses[tense], pronouns: verb.ui.pronouns, verbName: verb.verb };
+    }
+
+    function switchMode(mode){
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===mode));
+      if (mode==='fill'){ els.fillMode.classList.remove('hidden'); els.dragMode.classList.add('hidden'); }
+      else { els.fillMode.classList.add('hidden'); els.dragMode.classList.remove('hidden'); }
+      resetGame();
+    }
+
+    function createFillTable(){
+      const { tenseData, pronouns } = getCurrentData();
+      const table = els.fillTable;
+      table.innerHTML = '';
+
+      const headerRow = document.createElement('tr');
+      ['', '1st Person', '2nd Person', '3rd Person'].forEach(h=>{
+        const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th);
+      });
+      table.appendChild(headerRow);
+
+      const singularRow = document.createElement('tr');
+      const sTh = document.createElement('th'); sTh.textContent = 'Singular (Eintala)'; singularRow.appendChild(sTh);
+      ['1','2','3'].forEach(p=>{
+        const td = document.createElement('td');
+        const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns.singular[p];
+        const input = document.createElement('input'); input.type='text'; input.dataset.correct = (tenseData.singular[p]||''); input.dataset.number='singular'; input.dataset.person=p;
+        td.appendChild(lab); td.appendChild(input); singularRow.appendChild(td);
+      });
+      table.appendChild(singularRow);
+
+      const pluralRow = document.createElement('tr');
+      const pTh = document.createElement('th'); pTh.textContent = 'Plural (Fleirtala)'; pluralRow.appendChild(pTh);
+      ['1','2','3'].forEach(p=>{
+        const td = document.createElement('td');
+        const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns.plural[p];
+        const input = document.createElement('input'); input.type='text'; input.dataset.correct = (tenseData.plural[p]||''); input.dataset.number='plural'; input.dataset.person=p;
+        td.appendChild(lab); td.appendChild(input); pluralRow.appendChild(td);
+      });
+      table.appendChild(pluralRow);
+    }
+
+    function createDragTable(){
+      const { tenseData, pronouns } = getCurrentData();
+      els.dragTable.innerHTML = '';
+      els.dragTiles.innerHTML = '';
+
+      const forms = [];
+      ['singular','plural'].forEach(n=>['1','2','3'].forEach(p=>forms.push(tenseData[n][p]||'')));
+      forms.sort(()=>Math.random()-0.5);
+      forms.forEach(f=>{
+        const t = document.createElement('div'); t.className='tile'; t.textContent=f; t.draggable=true;
+        t.addEventListener('dragstart', e=>{ t.classList.add('dragging'); });
+        t.addEventListener('dragend', e=>{ t.classList.remove('dragging'); });
+        els.dragTiles.appendChild(t);
+      });
+
+      const headerRow = document.createElement('tr');
+      ['', '1st Person', '2nd Person', '3rd Person'].forEach(h=>{
+        const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th);
+      });
+      els.dragTable.appendChild(headerRow);
+
+      const mkRow = (label, number) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th'); th.textContent = label; tr.appendChild(th);
+        ['1','2','3'].forEach(p=>{
+          const td = document.createElement('td');
+          const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns[number][p];
+          const dz = document.createElement('div'); dz.className='drop-zone'; dz.dataset.correct = (tenseData[number][p]||'');
+          dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag-over'); });
+          dz.addEventListener('dragleave', e=>dz.classList.remove('drag-over'));
+          dz.addEventListener('drop', e=>{
+            e.preventDefault(); dz.classList.remove('drag-over');
+            const dragged = document.querySelector('.tile.dragging') || els.dragTiles.querySelector('.tile'); 
+            if (!dragged) return;
+            if (dz.firstChild) els.dragTiles.appendChild(dz.firstChild);
+            dz.appendChild(dragged);
+          });
+          dz.addEventListener('click', e=>{ if (dz.firstChild) els.dragTiles.appendChild(dz.firstChild); });
+          td.appendChild(lab); td.appendChild(dz); tr.appendChild(td);
+        });
+        els.dragTable.appendChild(tr);
+      };
+      mkRow('Singular (Eintala)','singular');
+      mkRow('Plural (Fleirtala)','plural');
+    }
+
+    function checkAnswers(){
+      const inputs = document.querySelectorAll('#fillTable input');
+      let correct=0, total=inputs.length;
+      inputs.forEach(inp=>{
+        const u = inp.value.trim().toLowerCase();
+        const c = (inp.dataset.correct||'').trim().toLowerCase();
+        if (u && u===c){ inp.classList.add('correct'); inp.classList.remove('incorrect'); correct++; }
+        else if (u){ inp.classList.add('incorrect'); inp.classList.remove('correct'); }
+        else { inp.classList.remove('correct','incorrect'); }
+      });
+      updateScore(correct,total);
+      showFeedback(correct,total);
+    }
+
+    function checkDragAnswers(){
+      const zones = document.querySelectorAll('#dragTable .drop-zone');
+      let correct=0, total=zones.length;
+      zones.forEach(z=>{
+        const t = z.querySelector('.tile');
+        if (t){
+          const u = (t.textContent||'').trim().toLowerCase();
+          const c = (z.dataset.correct||'').trim().toLowerCase();
+          if (u===c){ z.classList.add('correct'); z.classList.remove('incorrect'); correct++; }
+          else { z.classList.add('incorrect'); z.classList.remove('correct'); }
+        } else z.classList.remove('correct','incorrect');
+      });
+      updateScore(correct,total);
+      showFeedback(correct,total);
+    }
+
+    function updateScore(c,t){ els.scoreDisplay.textContent = Math.round((c/t)*100) + '%'; els.correctCount.textContent = c + '/' + t; }
+    function showFeedback(c,t){
+      els.feedback.className='feedback';
+      if (c===t){ els.feedback.classList.add('success'); els.feedback.textContent='🎉 Perfect! All answers correct!'; }
+      else if (c>t/2){ els.feedback.classList.add('success'); els.feedback.textContent=`Good job! ${c} out of ${t} correct.`; }
+      else { els.feedback.classList.add('error'); els.feedback.textContent=`Keep practicing! ${c} out of ${t} correct.`; }
+    }
+
+    function toggleAnswers(){
+      showingAnswers = !showingAnswers;
+      const btn = els.toggleAnswersBtn;
+      if (showingAnswers){
+        btn.textContent='Hide Answers';
+        if (currentMode==='fill'){
+          document.querySelectorAll('#fillTable input').forEach(i=>{ i.value=i.dataset.correct||''; i.classList.add('correct'); });
+        } else {
+          document.querySelectorAll('#dragTable .drop-zone').forEach(z=>{
+            if (!z.querySelector('.tile') && z.dataset.correct){
+              const hint = document.createElement('span'); hint.style.color='#21b766'; hint.style.fontSize='.875rem'; hint.textContent=z.dataset.correct; z.appendChild(hint);
+            }
+          });
+        }
+      } else {
+        btn.textContent='Show Answers';
+        if (currentMode==='fill'){
+          document.querySelectorAll('#fillTable input').forEach(i=>{ i.value=''; i.classList.remove('correct','incorrect'); });
+        } else {
+          document.querySelectorAll('#dragTable .drop-zone').forEach(z=>{ const s=z.querySelector('span'); if (s) s.remove(); });
+        }
+      }
+    }
+
+    function resetGame(){
+      showingAnswers=false;
+      els.feedback.textContent='';
+      els.scoreDisplay.textContent='0%';
+      els.correctCount.textContent='0';
+      els.toggleAnswersBtn.textContent='Show Answers';
+      if (currentMode==='fill') createFillTable(); else createDragTable();
+    }
+
+    // Init
     loadLesson();
+  </script>
+
+  <script>
+    // Auto-resize for LearnWorlds iframe
+    (function () {
+      let timer;
+      function postHeight() {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+          parent.postMessage({ type: 'IFRAME_HEIGHT', height: h }, '*');
+        }, 100);
+      }
+      const ro = new ResizeObserver(postHeight);
+      ro.observe(document.body);
+      window.addEventListener('load', postHeight);
+      ['verbSelect','tenseSelect'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', postHeight);
+      });
+      document.querySelectorAll('.mode-tab')
+        .forEach(tab => tab.addEventListener('click', () => setTimeout(postHeight, 150)));
+    })();
   </script>
 </body>
 </html>
