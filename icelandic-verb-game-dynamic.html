@@ -146,11 +146,22 @@
         if (!res.ok) throw new Error("Could not read sheet. Is it public?");
         const rows = await res.json();
 
-        // Parse config rows
-        const getCfg = (key) => {
-          const r = rows.find(r => (r['LESSON_TITLE']||r['LESSON_SUBTITLE']||r['SHOW_TENSES']||'') === key);
-          return r ? (r['Lesson 1: Basic Verbs - Nútíð'] || r['Practice present tense conjugations'] || r['yes'] || r['no'] || Object.values(r)[1]) : null;
-        };
+        // --- Parse config rows (rows 1–3) ---
+const titleRow = rows.find(r => r['LESSON_TITLE']);
+const subtitleRow = rows.find(r => r['LESSON_SUBTITLE']);
+const showTensesRow = rows.find(r => r['SHOW_TENSES']);
+
+const title = titleRow ? Object.values(titleRow)[1] : TAB;
+const subtitle = subtitleRow ? Object.values(subtitleRow)[1] : '';
+const showTenses =
+  (showTensesRow ? Object.values(showTensesRow)[1] : 'yes')
+    .toString()
+    .toLowerCase() === 'yes';
+
+CONFIG.showTenses = showTenses;
+els.title.textContent = title;
+els.subtitle.textContent =
+  subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
 
         // Safer parse using known layout from your guide
         const titleRow = rows.find(r => r['LESSON_TITLE'] !== undefined) || {};
