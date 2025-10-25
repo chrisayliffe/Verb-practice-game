@@ -163,9 +163,12 @@ els.title.textContent = title;
 els.subtitle.textContent =
   subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
 
-        // Find header row
-        const headerRowIndex = rows.findIndex(r => (r['Verb'] !== undefined && r['Tense'] !== undefined));
-        if (headerRowIndex === -1) throw new Error('Could not find Verb/Tense header row in the tab.');
+        // --- Find header row (case- and space-insensitive) ---
+const headerRowIndex = rows.findIndex(r => {
+  const keys = Object.keys(r).map(k => k.trim().toLowerCase());
+  return keys.includes('verb') && keys.includes('tense');
+});
+if (headerRowIndex === -1) throw new Error('Could not find Verb/Tense header row in the tab.');
 
         const dataRows = rows.slice(headerRowIndex + 1)
           .filter(r => r['Verb'] && r['Tense']);
@@ -173,35 +176,15 @@ els.subtitle.textContent =
         // Build VERB_DATA in the format your UI expects
         const byVerb = {};
         for (const r of dataRows) {
-          const verb = (r['Verb'] || '').trim();
-          const tense = (r['Tense'] || '').trim().toLowerCase(); // 'present' or 'past'
-          if (!verb || !tense) continue;
-
-          byVerb[verb] = byVerb[verb] || {
-            verb,
-            lemmas: [verb],
-            tenses: {
-              present: { label: 'Nútíð', singular: {}, plural: {} },
-              past: { label: 'Þátíð', singular: {}, plural: {} }
-            },
-            ui: {
-              pronouns: {
-                singular: { "1":"ég", "2":"þú", "3":"hann / hún / það" },
-                plural:   { "1":"við", "2":"þið", "3":"þeir / þær / þau" }
-              }
-            }
-          };
-
-          // Columns C–H: ég, þú, hann/hún/það, við, þið, þeir/þær/þau
-          const map = {
-            "1s": r['ég'] || r['Eg'] || r['eg'] || '',
-            "2s": r['þú'] || r['Thu'] || r['þu'] || r['thu'] || r['þú '] || '',
-            "3s": r['hann/hún/það'] || r['hann / hún / það'] || r['hann hun thad'] || r['3s'] || '',
-            "1p": r['við'] || r['Vid'] || r['vid'] || '',
-            "2p": r['þið'] || r['Thid'] || r['thid'] || '',
-            "3p": r['þeir/þær/þau'] || r['their/þær/þau'] || r['3p'] || ''
-          };
-
+          const normalize = (key) => Object.keys(r).find(k => k.trim().toLowerCase() === key);
+const map = {
+  "1s": r[normalize('ég')] || '',
+  "2s": r[normalize('þú')] || '',
+  "3s": r[normalize('hann/hún/það')] || '',
+  "1p": r[normalize('við')] || '',
+  "2p": r[normalize('þið')] || '',
+  "3p": r[normalize('þeir/þær/þau')] || ''
+};
           byVerb[verb].tenses[tense].singular["1"] = map["1s"];
           byVerb[verb].tenses[tense].singular["2"] = map["2s"];
           byVerb[verb].tenses[tense].singular["3"] = map["3s"];
