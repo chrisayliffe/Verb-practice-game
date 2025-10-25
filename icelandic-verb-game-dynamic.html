@@ -47,7 +47,6 @@
     .feedback { padding:14px; border-radius:8px; margin-top:16px; font-weight:600; font-size:1.0625rem; text-align:center; }
     .feedback.success { background:#f0fdf4; color:#21b766; border:2px solid #21b766; }
     .feedback.error { background:#fef2f2; color:#f15d4e; border:2px solid #f15d4e; }
-    @media (max-width:768px){ body{font-size:15px} h1{font-size:1.5rem} }
   </style>
 </head>
 <body>
@@ -108,17 +107,11 @@
   </div>
 
   <script>
-    // ---- Settings from your guide ----
     const SHEET_ID = "1TvQ8qTJ2IkaRbyJa3JNbjbLOM0peubS0VDNGupHwZes";
     const params = new URLSearchParams(location.search);
     const TAB = params.get("lesson") || "Lesson 1";
-    // Using opensheet to read tab as JSON
-   const SHEET_URL =
-  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq` +
-  `?tqx=out:json&sheet=${encodeURIComponent(TAB)}&range=A1:K`;
 
-    // App State
-    let VERB_DATA = []; // will be built from sheet
+    let VERB_DATA = [];
     let CONFIG = { showTenses: true };
     let currentMode = 'fill';
     let showingAnswers = false;
@@ -140,105 +133,56 @@
       dragMode: document.getElementById('dragMode'),
     };
 
-    // ---- Load lesson from Google Sheets ----
+    // 🧩 Load lesson dynamically from Google Sheets
     async function loadLesson() {
       els.subtitle.textContent = `Loading "${TAB}"…`;
       try {
-        // ---- Fetch & parse Google Sheet via GViz API ----
-const res = await fetch(SHEET_URL);
-if (!res.ok) throw new Error("Could not read sheet. Is it public?");
-const text = await res.text();
+        const res = await fetch(
+          `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB)}`
+        );
+        const text = await res.text();
+        const json = JSON.parse(text.replace(/^[\s\S]*?setResponse\(/, '').replace(/\);\s*$/, ''));
+        const rows2d = (json.table.rows || []).map(r => (r.c || []).map(c => (c && c.v != null ? String(c.v) : '')));
 
-// Convert Google’s weird GViz format to JSON
-const json = JSON.parse(
-  text.replace(/^[\s\S]*?setResponse\(/, '').replace(/\);\s*$/, '')
-);
-const table = json.table || { rows: [] };
+        // Config
+        const title = rows2d[0]?.[1] || TAB;
+        const subtitle = rows2d[1]?.[1] || '';
+        const showTenses = (rows2d[2]?.[1] || 'yes').toLowerCase() === 'yes';
+        CONFIG.showTenses = showTenses;
+        els.title.textContent = title;
+        els.subtitle.textContent = subtitle;
 
-// Convert sheet to a 2D array (row/column values)
-const rows2d = (table.rows || []).map(r => (r.c || []).map(c => (c && c.v != null ? String(c.v) : '')));
+        // Find header row
+        const headerRowIndex = rows2d.findIndex(r => r.some(v => v.toLowerCase() === 'verb'));
+        if (headerRowIndex === -1) throw new Error('Could not find header row.');
+        const headers = rows2d[headerRowIndex].map(h => h.trim().toLowerCase());
+        const data = rows2d.slice(headerRowIndex + 1).filter(r => r[0]);
 
-// --- Extract config (top 3 rows, A/B) ---
-const title     = (rows2d[0] && rows2d[0][1]) ? rows2d[0][1] : TAB;
-const subtitle  = (rows2d[1] && rows2d[1][1]) ? rows2d[1][1] : '';
-const showTenseVal = (rows2d[2] && rows2d[2][1]) ? rows2d[2][1] : 'yes';
-const showTenses = String(showTenseVal).toLowerCase() === 'yes';
+        // Build data
+        VERB_DATA = data.map(r => {
+          const get = k => r[headers.indexOf(k)] || '';
+          return {
+            verb: get('verb'),
+            tenses: {
+              present: {
+                singular: { 1: get('ég'), 2: get('þú'), 3: get('hann/hún/það') },
+                plural: { 1: get('við'), 2: get('þið'), 3: get('þeir/þær/þau') }
+              }
+            },
+            ui: { pronouns: {
+              singular: { 1:'ég', 2:'þú', 3:'hann / hún / það' },
+              plural: { 1:'við', 2:'þið', 3:'þeir / þær / þau' }
+            }}
+          };
+        });
 
-CONFIG.showTenses = showTenses;
-els.title.textContent = title;
-els.subtitle.textContent = subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
-
-// --- Find header row (the one with Verb + Tense) ---
-let headerRowIndex = -1;
-for (let i = 0; i < rows2d.length; i++) {
-  const lower = rows2d[i].map(s => s.trim().toLowerCase());
-  if (lower.some(h => h.startsWith('verb')) && lower.some(h => h.startsWith('tense'))) {
-  headerRowIndex = i;
-  break;
-}
-}
-if (headerRowIndex === -1) throw new Error('Could not find a row with "Verb" and "Tense".');
-
-// Map headers to column positions
-const header = rows2d[headerRowIndex];
-const hmap = {};
-header.forEach((h, i) => { if (h && h.trim()) hmap[h.trim().toLowerCase()] = i; });
-console.log('Header map:', hmap);
-const get = (row, name) => {
-  const idx = hmap[name.toLowerCase()];
-  return (idx != null && row[idx] != null) ? row[idx] : '';
-};
-
-// --- Extract verb rows ---
-const dataRows = [];
-for (let i = headerRowIndex + 1; i < rows2d.length; i++) {
-  const row = rows2d[i];
-  const verb = get(row, 'Verb');
-  const tense = get(row, 'Tense').toLowerCase();
-  if (!verb || !tense) continue;
-  dataRows.push({
-    verb,
-    tense,
-    eg:   get(row, 'ég'),
-    thu:  get(row, 'þú'),
-    hann: get(row, 'hann/hún/það'),
-    vid:  get(row, 'við'),
-    thid: get(row, 'þið'),
-    their:get(row, 'þeir/þær/þau'),
-  });
-}
-        // Build VERB_DATA in the format your UI expects
-        const byVerb = {};
-        for (const r of dataRows) {
-          const normalize = (key) => Object.keys(r).find(k => k.trim().toLowerCase() === key);
-const map = {
-  "1s": r[normalize('ég')] || '',
-  "2s": r[normalize('þú')] || '',
-  "3s": r[normalize('hann/hún/það')] || '',
-  "1p": r[normalize('við')] || '',
-  "2p": r[normalize('þið')] || '',
-  "3p": r[normalize('þeir/þær/þau')] || ''
-};
-          byVerb[verb].tenses[tense].singular["1"] = map["1s"];
-          byVerb[verb].tenses[tense].singular["2"] = map["2s"];
-          byVerb[verb].tenses[tense].singular["3"] = map["3s"];
-          byVerb[verb].tenses[tense].plural["1"]   = map["1p"];
-          byVerb[verb].tenses[tense].plural["2"]   = map["2p"];
-          byVerb[verb].tenses[tense].plural["3"]   = map["3p"];
-        }
-
-        VERB_DATA = Object.values(byVerb);
-        if (!VERB_DATA.length) throw new Error('No verb rows found under the header.');
-
-        // Populate UI
         buildVerbSelect();
-        applyShowTenses();
         attachHandlers();
         resetGame();
 
-      } catch (e) {
-        els.subtitle.textContent = '';
-        showError(e.message || 'Failed to load lesson.');
+      } catch (err) {
+        els.subtitle.textContent = 'Error loading sheet';
+        console.error(err);
       }
     }
 
@@ -246,219 +190,63 @@ const map = {
       els.verbSelect.innerHTML = '';
       VERB_DATA.forEach((v, i) => {
         const opt = document.createElement('option');
-        opt.value = String(i);
-        opt.textContent = 'að ' + v.verb;
+        opt.value = i;
+        opt.textContent = v.verb;
         els.verbSelect.appendChild(opt);
       });
     }
 
-    function applyShowTenses(){
-      els.tenseControl.style.display = CONFIG.showTenses ? '' : 'none';
-      if (!CONFIG.showTenses) els.tenseSelect.value = 'present';
-    }
-
     function attachHandlers(){
       els.toggleAnswersBtn.onclick = toggleAnswers;
-      document.querySelectorAll('.mode-tab').forEach(tab=>{
-        tab.onclick = () => switchMode(tab.dataset.mode);
-      });
       document.getElementById('checkFill').onclick = checkAnswers;
       document.getElementById('resetFill').onclick = resetGame;
-      document.getElementById('checkDrag').onclick = checkDragAnswers;
-      document.getElementById('resetDrag').onclick = resetGame;
-      els.verbSelect.onchange = resetGame;
-      els.tenseSelect.onchange = resetGame;
     }
 
     function getCurrentData(){
-      const verbIndex = parseInt(els.verbSelect.value || '0', 10) || 0;
-      const tense = (els.tenseSelect.value || 'present');
-      const verb = VERB_DATA[verbIndex];
-      return { tenseData: verb.tenses[tense], pronouns: verb.ui.pronouns, verbName: verb.verb };
-    }
-
-    function switchMode(mode){
-      currentMode = mode;
-      document.querySelectorAll('.mode-tab').forEach(t=>t.classList.toggle('active', t.dataset.mode===mode));
-      if (mode==='fill'){ els.fillMode.classList.remove('hidden'); els.dragMode.classList.add('hidden'); }
-      else { els.fillMode.classList.add('hidden'); els.dragMode.classList.remove('hidden'); }
-      resetGame();
+      const i = els.verbSelect.value || 0;
+      const verb = VERB_DATA[i];
+      return { data: verb.tenses.present, pronouns: verb.ui.pronouns };
     }
 
     function createFillTable(){
-      const { tenseData, pronouns } = getCurrentData();
+      const { data, pronouns } = getCurrentData();
       const table = els.fillTable;
-      table.innerHTML = '';
-
-      const headerRow = document.createElement('tr');
-      ['', '1st Person', '2nd Person', '3rd Person'].forEach(h=>{
-        const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th);
-      });
-      table.appendChild(headerRow);
-
-      const singularRow = document.createElement('tr');
-      const sTh = document.createElement('th'); sTh.textContent = 'Singular (Eintala)'; singularRow.appendChild(sTh);
-      ['1','2','3'].forEach(p=>{
-        const td = document.createElement('td');
-        const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns.singular[p];
-        const input = document.createElement('input'); input.type='text'; input.dataset.correct = (tenseData.singular[p]||''); input.dataset.number='singular'; input.dataset.person=p;
-        td.appendChild(lab); td.appendChild(input); singularRow.appendChild(td);
-      });
-      table.appendChild(singularRow);
-
-      const pluralRow = document.createElement('tr');
-      const pTh = document.createElement('th'); pTh.textContent = 'Plural (Fleirtala)'; pluralRow.appendChild(pTh);
-      ['1','2','3'].forEach(p=>{
-        const td = document.createElement('td');
-        const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns.plural[p];
-        const input = document.createElement('input'); input.type='text'; input.dataset.correct = (tenseData.plural[p]||''); input.dataset.number='plural'; input.dataset.person=p;
-        td.appendChild(lab); td.appendChild(input); pluralRow.appendChild(td);
-      });
-      table.appendChild(pluralRow);
-    }
-
-    function createDragTable(){
-      const { tenseData, pronouns } = getCurrentData();
-      els.dragTable.innerHTML = '';
-      els.dragTiles.innerHTML = '';
-
-      const forms = [];
-      ['singular','plural'].forEach(n=>['1','2','3'].forEach(p=>forms.push(tenseData[n][p]||'')));
-      forms.sort(()=>Math.random()-0.5);
-      forms.forEach(f=>{
-        const t = document.createElement('div'); t.className='tile'; t.textContent=f; t.draggable=true;
-        t.addEventListener('dragstart', e=>{ t.classList.add('dragging'); });
-        t.addEventListener('dragend', e=>{ t.classList.remove('dragging'); });
-        els.dragTiles.appendChild(t);
-      });
-
-      const headerRow = document.createElement('tr');
-      ['', '1st Person', '2nd Person', '3rd Person'].forEach(h=>{
-        const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th);
-      });
-      els.dragTable.appendChild(headerRow);
-
-      const mkRow = (label, number) => {
-        const tr = document.createElement('tr');
-        const th = document.createElement('th'); th.textContent = label; tr.appendChild(th);
-        ['1','2','3'].forEach(p=>{
-          const td = document.createElement('td');
-          const lab = document.createElement('div'); lab.style.fontSize='.9375rem'; lab.style.color='#666'; lab.style.marginBottom='6px'; lab.textContent = pronouns[number][p];
-          const dz = document.createElement('div'); dz.className='drop-zone'; dz.dataset.correct = (tenseData[number][p]||'');
-          dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag-over'); });
-          dz.addEventListener('dragleave', e=>dz.classList.remove('drag-over'));
-          dz.addEventListener('drop', e=>{
-            e.preventDefault(); dz.classList.remove('drag-over');
-            const dragged = document.querySelector('.tile.dragging') || els.dragTiles.querySelector('.tile'); 
-            if (!dragged) return;
-            if (dz.firstChild) els.dragTiles.appendChild(dz.firstChild);
-            dz.appendChild(dragged);
-          });
-          dz.addEventListener('click', e=>{ if (dz.firstChild) els.dragTiles.appendChild(dz.firstChild); });
-          td.appendChild(lab); td.appendChild(dz); tr.appendChild(td);
-        });
-        els.dragTable.appendChild(tr);
-      };
-      mkRow('Singular (Eintala)','singular');
-      mkRow('Plural (Fleirtala)','plural');
+      table.innerHTML = `
+        <tr><th></th><th>1st</th><th>2nd</th><th>3rd</th></tr>
+        <tr><th>Singular</th>
+          <td><input data-correct="${data.singular[1]}" placeholder="${pronouns.singular[1]}"></td>
+          <td><input data-correct="${data.singular[2]}" placeholder="${pronouns.singular[2]}"></td>
+          <td><input data-correct="${data.singular[3]}" placeholder="${pronouns.singular[3]}"></td>
+        </tr>
+        <tr><th>Plural</th>
+          <td><input data-correct="${data.plural[1]}" placeholder="${pronouns.plural[1]}"></td>
+          <td><input data-correct="${data.plural[2]}" placeholder="${pronouns.plural[2]}"></td>
+          <td><input data-correct="${data.plural[3]}" placeholder="${pronouns.plural[3]}"></td>
+        </tr>`;
     }
 
     function checkAnswers(){
-      const inputs = document.querySelectorAll('#fillTable input');
-      let correct=0, total=inputs.length;
+      const inputs = els.fillTable.querySelectorAll('input');
+      let correct=0;
       inputs.forEach(inp=>{
-        const u = inp.value.trim().toLowerCase();
-        const c = (inp.dataset.correct||'').trim().toLowerCase();
-        if (u && u===c){ inp.classList.add('correct'); inp.classList.remove('incorrect'); correct++; }
-        else if (u){ inp.classList.add('incorrect'); inp.classList.remove('correct'); }
-        else { inp.classList.remove('correct','incorrect'); }
+        if(inp.value.trim().toLowerCase()===inp.dataset.correct.trim().toLowerCase()){
+          inp.classList.add('correct'); correct++;
+        } else inp.classList.add('incorrect');
       });
-      updateScore(correct,total);
-      showFeedback(correct,total);
-    }
-
-    function checkDragAnswers(){
-      const zones = document.querySelectorAll('#dragTable .drop-zone');
-      let correct=0, total=zones.length;
-      zones.forEach(z=>{
-        const t = z.querySelector('.tile');
-        if (t){
-          const u = (t.textContent||'').trim().toLowerCase();
-          const c = (z.dataset.correct||'').trim().toLowerCase();
-          if (u===c){ z.classList.add('correct'); z.classList.remove('incorrect'); correct++; }
-          else { z.classList.add('incorrect'); z.classList.remove('correct'); }
-        } else z.classList.remove('correct','incorrect');
-      });
-      updateScore(correct,total);
-      showFeedback(correct,total);
-    }
-
-    function updateScore(c,t){ els.scoreDisplay.textContent = Math.round((c/t)*100) + '%'; els.correctCount.textContent = c + '/' + t; }
-    function showFeedback(c,t){
-      els.feedback.className='feedback';
-      if (c===t){ els.feedback.classList.add('success'); els.feedback.textContent='🎉 Perfect! All answers correct!'; }
-      else if (c>t/2){ els.feedback.classList.add('success'); els.feedback.textContent=`Good job! ${c} out of ${t} correct.`; }
-      else { els.feedback.classList.add('error'); els.feedback.textContent=`Keep practicing! ${c} out of ${t} correct.`; }
-    }
-
-    function toggleAnswers(){
-      showingAnswers = !showingAnswers;
-      const btn = els.toggleAnswersBtn;
-      if (showingAnswers){
-        btn.textContent='Hide Answers';
-        if (currentMode==='fill'){
-          document.querySelectorAll('#fillTable input').forEach(i=>{ i.value=i.dataset.correct||''; i.classList.add('correct'); });
-        } else {
-          document.querySelectorAll('#dragTable .drop-zone').forEach(z=>{
-            if (!z.querySelector('.tile') && z.dataset.correct){
-              const hint = document.createElement('span'); hint.style.color='#21b766'; hint.style.fontSize='.875rem'; hint.textContent=z.dataset.correct; z.appendChild(hint);
-            }
-          });
-        }
-      } else {
-        btn.textContent='Show Answers';
-        if (currentMode==='fill'){
-          document.querySelectorAll('#fillTable input').forEach(i=>{ i.value=''; i.classList.remove('correct','incorrect'); });
-        } else {
-          document.querySelectorAll('#dragTable .drop-zone').forEach(z=>{ const s=z.querySelector('span'); if (s) s.remove(); });
-        }
-      }
+      els.correctCount.textContent = correct;
     }
 
     function resetGame(){
-      showingAnswers=false;
-      els.feedback.textContent='';
-      els.scoreDisplay.textContent='0%';
+      createFillTable();
       els.correctCount.textContent='0';
-      els.toggleAnswersBtn.textContent='Show Answers';
-      if (currentMode==='fill') createFillTable(); else createDragTable();
+      els.scoreDisplay.textContent='0%';
     }
 
-    // Init
-    loadLesson();
-  </script>
+    function toggleAnswers(){
+      document.querySelectorAll('#fillTable input').forEach(i=>i.value=i.dataset.correct);
+    }
 
-  <script>
-    // Auto-resize for LearnWorlds iframe
-    (function () {
-      let timer;
-      function postHeight() {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-          const h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-          parent.postMessage({ type: 'IFRAME_HEIGHT', height: h }, '*');
-        }, 100);
-      }
-      const ro = new ResizeObserver(postHeight);
-      ro.observe(document.body);
-      window.addEventListener('load', postHeight);
-      ['verbSelect','tenseSelect'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', postHeight);
-      });
-      document.querySelectorAll('.mode-tab')
-        .forEach(tab => tab.addEventListener('click', () => setTimeout(postHeight, 150)));
-    })();
+    loadLesson();
   </script>
 </body>
 </html>
