@@ -113,7 +113,9 @@
     const params = new URLSearchParams(location.search);
     const TAB = params.get("lesson") || "Lesson 1";
     // Using opensheet to read tab as JSON
-    const SHEET_URL = `https://opensheet.elk.sh/${SHEET_ID}/${encodeURIComponent(TAB)}`;
+   const SHEET_URL =
+  `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq` +
+  `?tqx=out:json&sheet=${encodeURIComponent(TAB)}&range=A1:K`;
 
     // App State
     let VERB_DATA = []; // will be built from sheet
@@ -142,37 +144,65 @@
     async function loadLesson() {
       els.subtitle.textContent = `Loading "${TAB}"…`;
       try {
-        const res = await fetch(SHEET_URL);
-        if (!res.ok) throw new Error("Could not read sheet. Is it public?");
-        const rows = await res.json();
+        // ---- Fetch & parse Google Sheet via GViz API ----
+const res = await fetch(SHEET_URL);
+if (!res.ok) throw new Error("Could not read sheet. Is it public?");
+const text = await res.text();
 
-        // --- Parse config rows (rows 1–3) ---
-const titleRow = rows.find(r => r['LESSON_TITLE']);
-const subtitleRow = rows.find(r => r['LESSON_SUBTITLE']);
-const showTensesRow = rows.find(r => r['SHOW_TENSES']);
+// Convert Google’s weird GViz format to JSON
+const json = JSON.parse(
+  text.replace(/^[\s\S]*?setResponse\(/, '').replace(/\);\s*$/, '')
+);
+const table = json.table || { rows: [] };
 
-const title = titleRow ? Object.values(titleRow)[1] : TAB;
-const subtitle = subtitleRow ? Object.values(subtitleRow)[1] : '';
-const showTenses =
-  (showTensesRow ? Object.values(showTensesRow)[1] : 'yes')
-    .toString()
-    .toLowerCase() === 'yes';
+// Convert sheet to a 2D array (row/column values)
+const rows2d = (table.rows || []).map(r => (r.c || []).map(c => (c && c.v != null ? String(c.v) : '')));
+
+// --- Extract config (top 3 rows, A/B) ---
+const title     = (rows2d[0] && rows2d[0][1]) ? rows2d[0][1] : TAB;
+const subtitle  = (rows2d[1] && rows2d[1][1]) ? rows2d[1][1] : '';
+const showTenseVal = (rows2d[2] && rows2d[2][1]) ? rows2d[2][1] : 'yes';
+const showTenses = String(showTenseVal).toLowerCase() === 'yes';
 
 CONFIG.showTenses = showTenses;
 els.title.textContent = title;
-els.subtitle.textContent =
-  subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
+els.subtitle.textContent = subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
 
-        // --- Find header row (case- and space-insensitive) ---
-const headerRowIndex = rows.findIndex(r => {
-  const keys = Object.keys(r).map(k => k.trim().toLowerCase());
-  return keys.includes('verb') && keys.includes('tense');
-});
-if (headerRowIndex === -1) throw new Error('Could not find Verb/Tense header row in the tab.');
+// --- Find header row (the one with Verb + Tense) ---
+let headerRowIndex = -1;
+for (let i = 0; i < rows2d.length; i++) {
+  const lower = rows2d[i].map(s => s.trim().toLowerCase());
+  if (lower.includes('verb') && lower.includes('tense')) { headerRowIndex = i; break; }
+}
+if (headerRowIndex === -1) throw new Error('Could not find a row with "Verb" and "Tense".');
 
-        const dataRows = rows.slice(headerRowIndex + 1)
-          .filter(r => r['Verb'] && r['Tense']);
+// Map headers to column positions
+const header = rows2d[headerRowIndex];
+const hmap = {};
+header.forEach((h, i) => { if (h && h.trim()) hmap[h.trim().toLowerCase()] = i; });
+const get = (row, name) => {
+  const idx = hmap[name.toLowerCase()];
+  return (idx != null && row[idx] != null) ? row[idx] : '';
+};
 
+// --- Extract verb rows ---
+const dataRows = [];
+for (let i = headerRowIndex + 1; i < rows2d.length; i++) {
+  const row = rows2d[i];
+  const verb = get(row, 'Verb');
+  const tense = get(row, 'Tense').toLowerCase();
+  if (!verb || !tense) continue;
+  dataRows.push({
+    verb,
+    tense,
+    eg:   get(row, 'ég'),
+    thu:  get(row, 'þú'),
+    hann: get(row, 'hann/hún/það'),
+    vid:  get(row, 'við'),
+    thid: get(row, 'þið'),
+    their:get(row, 'þeir/þær/þau'),
+  });
+}
         // Build VERB_DATA in the format your UI expects
         const byVerb = {};
         for (const r of dataRows) {
