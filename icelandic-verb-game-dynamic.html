@@ -172,7 +172,10 @@ els.subtitle.textContent = subtitle || (showTenses ? 'Practice present and past'
 let headerRowIndex = -1;
 for (let i = 0; i < rows2d.length; i++) {
   const lower = rows2d[i].map(s => s.trim().toLowerCase());
-  if (lower.includes('verb') && lower.includes('tense')) { headerRowIndex = i; break; }
+  if (lower.some(h => h.startsWith('verb')) && lower.some(h => h.startsWith('tense'))) {
+  headerRowIndex = i;
+  break;
+}
 }
 if (headerRowIndex === -1) throw new Error('Could not find a row with "Verb" and "Tense".');
 
@@ -180,6 +183,7 @@ if (headerRowIndex === -1) throw new Error('Could not find a row with "Verb" and
 const header = rows2d[headerRowIndex];
 const hmap = {};
 header.forEach((h, i) => { if (h && h.trim()) hmap[h.trim().toLowerCase()] = i; });
+console.log('Header map:', hmap);
 const get = (row, name) => {
   const idx = hmap[name.toLowerCase()];
   return (idx != null && row[idx] != null) ? row[idx] : '';
