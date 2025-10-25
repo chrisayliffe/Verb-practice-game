@@ -163,19 +163,6 @@ els.title.textContent = title;
 els.subtitle.textContent =
   subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
 
-        // Safer parse using known layout from your guide
-        const titleRow = rows.find(r => r['LESSON_TITLE'] !== undefined) || {};
-        const subtitleRow = rows.find(r => r['LESSON_SUBTITLE'] !== undefined) || {};
-        const showTensesRow = rows.find(r => r['SHOW_TENSES'] !== undefined) || {};
-
-        const title = Object.values(titleRow)[1] || TAB;
-        const subtitle = Object.values(subtitleRow)[1] || '';
-        const showTenses = (Object.values(showTensesRow)[1] || 'yes').toString().toLowerCase() === 'yes';
-
-        CONFIG.showTenses = showTenses;
-        els.title.textContent = title;
-        els.subtitle.textContent = subtitle || (showTenses ? 'Practice present and past' : 'Practice present tense');
-
         // Find header row
         const headerRowIndex = rows.findIndex(r => (r['Verb'] !== undefined && r['Tense'] !== undefined));
         if (headerRowIndex === -1) throw new Error('Could not find Verb/Tense header row in the tab.');
